@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>item-service</artifactId>
+    <artifactId>hm-api</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -77,12 +77,6 @@
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-okhttp</artifactId>
-        </dependency>
-        <!--hm-api模块-->
-        <dependency>
-            <groupId>com.heima</groupId>
-            <artifactId>hm-api</artifactId>
-            <version>1.0.0</version>
         </dependency>
     </dependencies>
     <build>
