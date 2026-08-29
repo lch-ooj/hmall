@@ -1,0 +1,64 @@
+# ========== 编译产物 ==========
+/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# ========== Maven 相关 ==========
+# Maven 本地仓库（一般不需要忽略，但如果你在项目里误建了，忽略它）
+/maven-wrapper.jar
+.mvn/
+
+# ========== IDE 相关 ==========
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/
+nb-configuration.xml
+
+# ========== 日志文件 ==========
+*.log
+logs/
+
+# ========== 系统文件 ==========
+.DS_Store
+Thumbs.db
+
+# ========== 本地配置 / 敏感信息 ==========
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 应用配置文件（根据项目情况选择）
+# application-local.yml
+# application-dev.yml
+# bootstrap-local.yml
+
+# 密钥文件
+*.p12
+*.jks
+*.pem
+*.key
+
+# ========== 临时文件 ==========
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
