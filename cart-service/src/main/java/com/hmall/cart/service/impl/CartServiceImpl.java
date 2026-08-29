@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmall.cart.domain.dto.ItemDTO;
+import com.hmall.cart.feighclient.ItemClient;
 import com.hmall.common.exception.BizIllegalException;
 import com.hmall.common.utils.BeanUtils;
 import com.hmall.common.utils.CollUtils;
@@ -45,14 +46,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements ICartService {
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     /**
-     * 服务发现客户端
+     * 商品服务feign客户端
      */
     @Autowired
-    private DiscoveryClient discoveryClient;
+    private ItemClient itemClient;
 
     @Override
     public void addItem2Cart(CartFormDTO cartFormDTO) {
@@ -99,26 +97,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
         // 1.获取商品id
         Set<Long> itemIds = vos.stream().map(CartVO::getItemId).collect(Collectors.toSet());
         // 2.查询商品
-        // 2.1 发现item-service服务列表
-        List<ServiceInstance> instances = discoveryClient.getInstances("item-service");
-        // 2.2 负载均衡，选择一个实例
-        ServiceInstance instance = instances.get(RandomUtil.randomInt(instances.size()));
-        //2.3 利用RestTemplate发起http请求
-        ResponseEntity<List<ItemDTO>> response = restTemplate.exchange(
-                instance.getUri() + "/items?ids={ids}",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<ItemDTO>>() {
-                },
-                Map.of("ids", CollUtil.join(itemIds, ","))); //集合转字符串
-        //2.2 解析响应
-        if (!response.getStatusCode().is2xxSuccessful()){
-            throw new BizIllegalException("商品服务异常，请稍后再试");
-        }
-        List<ItemDTO> items = response.getBody();
-        if (CollUtils.isEmpty(items)) {
-            return;
-        }
+        List<ItemDTO> items = itemClient.queryItemByIds(itemIds);
         // 3.转为 id 到 item的map
         Map<Long, ItemDTO> itemMap = items.stream().collect(Collectors.toMap(ItemDTO::getId, Function.identity()));
         // 4.写入vo
