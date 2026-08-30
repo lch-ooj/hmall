@@ -52,11 +52,14 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             return response.setComplete();
         }
 
-        //todo 5.传递用户信息
+        //5.传递用户信息
         System.out.println("token 校验通过，用户 ID：" + userId);
-//        UserContext.setUser(userId);
+        String userInfo = userId.toString();
+        ServerWebExchange webExchange = exchange.mutate()
+                .request(builder -> builder.header("user-info", userInfo))
+                .build();
 
-        return null;
+        return chain.filter(webExchange);
     }
 
     /**
