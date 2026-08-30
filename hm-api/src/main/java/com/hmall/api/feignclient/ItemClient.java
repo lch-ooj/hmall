@@ -1,6 +1,6 @@
 package com.hmall.api.feignclient;
 
-import com.hmall.api.FeignConfig;
+import com.hmall.api.config.FeignConfig;
 import com.hmall.api.dto.ItemDTO;
 import com.hmall.api.dto.OrderDetailDTO;
 import org.springframework.cloud.openfeign.FeignClient;
