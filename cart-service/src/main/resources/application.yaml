@@ -1,6 +1,8 @@
 server:
   port: 8082
 feign:
+  sentinel:
+    enabled: true
   okhttp:
     enabled: true # 开启OKHttp功能
 hm:
