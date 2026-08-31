@@ -12,3 +12,6 @@ spring:
           - data-id: shared-jdbc.yaml
           - data-id: shared-log.yaml
           - data-id: shared-swagger.yaml
+    sentinel:
+      transport:
+        dashboard: 192.168.200.130:8858 # Sentinel 控制体地址
