@@ -15,3 +15,4 @@ spring:
     sentinel:
       transport:
         dashboard: 192.168.200.130:8858 # Sentinel 控制体地址
+      http-method-specify: true # 是否开启请求方式作为资源名称前缀
