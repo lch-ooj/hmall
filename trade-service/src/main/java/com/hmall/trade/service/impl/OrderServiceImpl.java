@@ -94,6 +94,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     }
 
     @Override
+    @Transactional
     public void markOrderPaySuccess(Long orderId) {
         Order order = new Order();
         order.setId(orderId);
