@@ -8,6 +8,7 @@ import com.hmall.api.dto.OrderDetailDTO;
 import com.hmall.api.feignclient.CartClient;
 import com.hmall.api.feignclient.ItemClient;
 import com.hmall.common.exception.BadRequestException;
+import com.hmall.common.utils.BeanUtils;
 import com.hmall.common.utils.UserContext;
 import com.hmall.trade.constants.MQConstants;
 import com.hmall.trade.domain.dto.OrderFormDTO;
@@ -131,6 +132,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         wrapper.eq(Order::getId, orderId);
         wrapper.eq(Order::getStatus, 1);
         update(wrapper);
+    }
+
+    @Override
+    public void cancelOrder(Long bizOrderNo) {
+        Order order = getById(bizOrderNo);
+        if (order == null || order.getStatus() ==5 ) {
+            // 幂等性：已取消的订单不操作(不改状态也不恢复库存)
+            return;
+        }
+        //恢复库存
+        List<OrderDetail> orderDetails = detailService.lambdaQuery().eq(OrderDetail::getOrderId, bizOrderNo).list();
+        itemClient.restoreStock(BeanUtils.copyList(orderDetails, OrderDetailDTO.class));
+
+        // 修改订单状态
+        lambdaUpdate().set(Order::getStatus, 5)
+                .set(Order::getCloseTime, LocalDateTime.now())
+                .eq(Order::getId, bizOrderNo)
+                .update();
+
     }
 
     private List<OrderDetail> buildDetails(Long orderId, List<ItemDTO> items, Map<Long, Integer> numMap) {
