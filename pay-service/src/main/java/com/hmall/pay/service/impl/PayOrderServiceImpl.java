@@ -3,6 +3,7 @@ package com.hmall.pay.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmall.api.dto.PayOrderDTO;
 import com.hmall.api.feignclient.TradeClient;
 import com.hmall.api.feignclient.UserClient;
 import com.hmall.common.exception.BizIllegalException;
@@ -77,6 +78,16 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             throw new BizIllegalException("支付成功消息发送失败！");
         }
 //        tradeClient.markOrderPaySuccess(po.getBizOrderNo());
+    }
+
+    @Override
+    public PayOrderDTO queryPayOrderByBizOrderNo(Long bizOrderNo) {
+        PayOrder payOrder = queryByBizOrderNo(bizOrderNo);
+        if (payOrder != null) {
+            return BeanUtils.toBean(payOrder, PayOrderDTO.class);
+        }
+        log.info("查询到的支付单为空，订单号：{}", bizOrderNo);
+        return null;
     }
 
     @Transactional

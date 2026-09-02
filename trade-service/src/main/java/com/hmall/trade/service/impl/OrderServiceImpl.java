@@ -9,6 +9,7 @@ import com.hmall.api.feignclient.CartClient;
 import com.hmall.api.feignclient.ItemClient;
 import com.hmall.common.exception.BadRequestException;
 import com.hmall.common.utils.UserContext;
+import com.hmall.trade.constants.MQConstants;
 import com.hmall.trade.domain.dto.OrderFormDTO;
 import com.hmall.trade.domain.po.Order;
 import com.hmall.trade.domain.po.OrderDetail;
@@ -103,6 +104,19 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
                     });
         } catch (Exception e){
             throw new RuntimeException("清理购物车失败！");
+        }
+        // 5.发送延迟消息，检查超时订单
+        try {
+            System.out.println("发送检查超时订单消息");
+            rabbitTemplate.convertAndSend(MQConstants.DELAY_EXCHANGE_NAME,
+                    MQConstants.DELAY_ORDER_KEY,
+                    order.getId(),
+                    message -> {
+                        message.getMessageProperties().setDelay(1000 * 30);
+                        return message;
+                    });
+        }catch (Exception e){
+            throw new RuntimeException("发送检查超时订单消息失败！");
         }
         return order.getId();
     }
