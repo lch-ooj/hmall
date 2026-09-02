@@ -15,6 +15,7 @@ import com.hmall.trade.service.IOrderDetailService;
 import com.hmall.trade.service.IOrderService;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private ItemClient itemClient;
 
     @Autowired
-    private CartClient cartClient;
+    private RabbitTemplate rabbitTemplate;
 
 //    private final IItemService itemService;
     private final IOrderDetailService detailService;
@@ -81,14 +82,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         List<OrderDetail> details = buildDetails(order.getId(), items, itemNumMap);
         detailService.saveBatch(details);
 
-        // 3.清理购物车商品
-        cartClient.deleteCartItemByIds(itemIds);
-
-        // 4.扣减库存
+        // 3.扣减库存
         try {
             itemClient.deductStock(detailDTOS);
         } catch (Exception e) {
             throw new RuntimeException("库存不足！");
+        }
+
+        // 4.清理购物车商品
+        try {
+            System.out.println("发送清理购物车消息");
+            rabbitTemplate.convertAndSend("trade.topic",
+                    "order.create",
+                    itemIds,
+                    message -> {
+                        message.getMessageProperties().setHeader("user-info", UserContext.getUser());
+                        return message;
+                    });
+        } catch (Exception e){
+            throw new RuntimeException("清理购物车失败！");
         }
         return order.getId();
     }
