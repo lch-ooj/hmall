@@ -14,6 +14,8 @@ import com.hmall.service.IItemService;
 import com.hmall.service.IOrderDetailService;
 import com.hmall.service.IOrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -40,9 +43,22 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private final IOrderDetailService detailService;
     private final ICartService cartService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @Override
     @Transactional
     public Long createOrder(OrderFormDTO orderFormDTO) {
+        String key = "orders:recreateOrder:" + UserContext.getUser().toString();
+        Boolean result = redisTemplate.opsForValue().setIfAbsent(
+                key,
+                1,
+                10,
+                TimeUnit.SECONDS);
+        if (result.equals(Boolean.FALSE)){
+            log.error("重复下单");
+            throw new RuntimeException("请勿重复下单");
+        }
         // 1.订单数据
         Order order = new Order();
         // 1.1.查询商品
